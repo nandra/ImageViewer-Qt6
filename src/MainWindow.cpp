@@ -4,7 +4,7 @@
   connect(this, &MainWindow::signal_slot_name, imageLoader,                    \
           &ImageLoader::signal_slot_name, Qt::QueuedConnection);
 
-MainWindow::MainWindow() : QMainWindow() {
+MainWindow::MainWindow(const QString& path) : QMainWindow() {
 
   // Create a fixed-size QPixmap on startup
   QRect primaryScreenGeometry = QApplication::primaryScreen()->geometry();
@@ -51,83 +51,11 @@ MainWindow::MainWindow() : QMainWindow() {
   imageLoaderThread->start();
 
   // Create a menu bar
-  QMenuBar *menuBar = new QMenuBar(this);
-  setMenuBar(menuBar);
+  //QMenuBar *menuBar = new QMenuBar(this);
+  //setMenuBar(menuBar);
 
   // Create a "File" menu
-  QMenu *fileMenu = menuBar->addMenu("File");
-  QMenu *viewMenu = menuBar->addMenu("View");
-  QMenu *goMenu = menuBar->addMenu("Go");
-
-  // Create an "Open" action
-  QAction *openAction = new QAction("Open...", this);
-  openAction->setShortcut(QKeySequence("Ctrl+O"));
-  connect(openAction, &QAction::triggered, this, &MainWindow::openImage);
-
-  // Create a "Copy to clipboard" action
-  QAction *copyToClipboardAction = new QAction("Copy Image", this);
-  copyToClipboardAction->setShortcut(QKeySequence("Ctrl+C"));
-  connect(copyToClipboardAction, &QAction::triggered, this,
-          &MainWindow::copyToClipboard);
-
-  // Create a "Copy Image Path" action
-  QAction *copyImagePathAction = new QAction("Copy Image Path", this);
-  connect(copyImagePathAction, &QAction::triggered, this,
-          &MainWindow::copyImagePathToClipboard);
-
-  // Create a "Copy to..." action
-  QAction *copyToLocationAction = new QAction("Copy to...", this);
-  connect(copyToLocationAction, &QAction::triggered, this,
-          &MainWindow::copyToLocation);
-
-  // Create a "Delete" action
-  QAction *deleteAction = new QAction("Delete Image", this);
-  deleteAction->setShortcut(QKeySequence("Ctrl+D"));
-  connect(deleteAction, &QAction::triggered, this,
-          &MainWindow::confirmAndDeleteCurrentImage);
-
-  QAction *preferencesAction = new QAction("Preferences", this);
-  connect(preferencesAction, &QAction::triggered, this,
-          &MainWindow::showPreferences);
-
-  QAction *quitAction = new QAction("Quit", this);
-  quitAction->setShortcut(QKeySequence("Ctrl+Q"));
-  connect(quitAction, &QAction::triggered, this, &QApplication::quit);
-
-  // Create an "Zoom In" action
-  QAction *zoomInAction = new QAction("Zoom In", this);
-  zoomInAction->setShortcut(QKeySequence("Ctrl++"));
-  connect(zoomInAction, &QAction::triggered, this, &MainWindow::zoomIn);
-
-  // Create an "Zoom Out" action
-  QAction *zoomOutAction = new QAction("Zoom Out", this);
-  zoomOutAction->setShortcut(QKeySequence("Ctrl+-"));
-  connect(zoomOutAction, &QAction::triggered, this, &MainWindow::zoomOut);
-
-  // Create an "Slideshow" action
-  QAction *slideshowAction = new QAction("Start Slideshow", this);
-  connect(slideshowAction, &QAction::triggered, this,
-          &MainWindow::startSlideshow);
-
-  // First Image
-  QAction *firstImageAction = new QAction("First Image", this);
-  connect(firstImageAction, &QAction::triggered, this,
-          [this]() { emit goToFirstImage(); });
-
-  // Previous Image
-  QAction *previousImageAction = new QAction("Previous Image", this);
-  connect(previousImageAction, &QAction::triggered, this,
-          [this]() { emit previousImage(imageViewer->pixmap()); });
-
-  // Next Image
-  QAction *nextImageAction = new QAction("Next Image", this);
-  connect(nextImageAction, &QAction::triggered, this,
-          [this]() { emit nextImage(imageViewer->pixmap()); });
-
-  // Last Image
-  QAction *lastImageAction = new QAction("Last Image", this);
-  connect(lastImageAction, &QAction::triggered, this,
-          [this]() { emit goToLastImage(); });
+  ;
 
   slideshowTimer = new QTimer(this);
 
@@ -141,28 +69,8 @@ MainWindow::MainWindow() : QMainWindow() {
   m_slideshowLoop =
       m_preferences->get(Preferences::SETTING_SLIDESHOW_LOOP, false).toBool();
 
-  // Add the "Open" action to the "File" menu
-  fileMenu->addAction(openAction);
-  fileMenu->addSeparator();
-  fileMenu->addAction(copyToClipboardAction);
-  fileMenu->addAction(copyImagePathAction);
-  fileMenu->addAction(copyToLocationAction);
-  fileMenu->addSeparator();
-  fileMenu->addAction(deleteAction);
-  fileMenu->addSeparator();
-  fileMenu->addAction(preferencesAction);
-  fileMenu->addAction(quitAction);
-  viewMenu->addAction(zoomInAction);
-  viewMenu->addAction(zoomOutAction);
-  viewMenu->addSeparator();
-  viewMenu->addAction(slideshowAction);
-  goMenu->addAction(firstImageAction);
-  goMenu->addAction(previousImageAction);
-  goMenu->addAction(nextImageAction);
-  goMenu->addAction(lastImageAction);
-
-  createSortByMenu(viewMenu);
-  createSortOrderMenu(viewMenu);
+  //createSortByMenu(viewMenu);
+  //createSortOrderMenu(viewMenu);
 
   // Create a imageViewer to display the image
   imageViewer = new ImageViewer(this);
@@ -182,8 +90,11 @@ MainWindow::MainWindow() : QMainWindow() {
   settingChangedBackgroundColor(QColor(r, g, b, a));
 
   setCentralWidget(m_centralWidget);
+  
+  m_path = path;
 
   openImage();
+
 }
 
 void MainWindow::createSortOrderMenu(QMenu *viewMenu) {
@@ -263,20 +174,21 @@ void MainWindow::openImage() {
       m_preferences->get(Preferences::SETTING_PREVIOUS_OPEN_PATH, "")
           .toString();
 
-  QString imagePath = QFileDialog::getOpenFileName(
-      this, "Open Image", previousOpenPath, fileFilter);
-
-  if (!imagePath.isEmpty()) {
+  //QString imagePath = QFileDialog::getOpenFileName(
+  //    this, "Open Image", previousOpenPath, fileFilter);
+  //QString imagePath = "/home/marek/Downloads/IMG_4631.jpg";
+  qDebug() << "m_path:" << m_path;
+  if (!m_path.isEmpty()) {
     // Emit a signal to load the image in a separate thread
 
     emit resetImageFilePaths();
-    emit loadImage(imagePath);
+    emit loadImage(m_path);
 
-    QFileInfo fileInfo(imagePath);
+    QFileInfo fileInfo(m_path);
 
     /// Save the open path
-    m_preferences->set(Preferences::SETTING_PREVIOUS_OPEN_PATH,
-                       fileInfo.dir().absolutePath());
+    m_preferences->set(Preferences::SETTING_PREVIOUS_OPEN_PATH, "/home/marek/Downloads");
+                       //fileInfo.dir().absolutePath());
   }
 }
 

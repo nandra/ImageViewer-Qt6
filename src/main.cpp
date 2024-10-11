@@ -3,12 +3,14 @@
 int main(int argc, char *argv[]) {
   QApplication app(argc, argv);
 
-  MainWindow mainWindow;
+  qDebug() << argv[0] << argv[1];
+
+  MainWindow mainWindow(argv[1]);
   mainWindow.setWindowTitle("Resizable Collapsible Sidebar");
 
   app.installEventFilter(&mainWindow);
 
-  mainWindow.show();
+  mainWindow.showFullScreen();
 
   return app.exec();
 }

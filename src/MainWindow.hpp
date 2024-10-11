@@ -33,7 +33,7 @@ class MainWindow : public QMainWindow {
   static constexpr qreal SCALE_FACTOR = 0.90;
 
 public:
-  MainWindow();
+  MainWindow(const QString &path);
   ~MainWindow() = default;
 
 public slots:
@@ -84,7 +84,7 @@ private:
   void startSlideshow();
   void confirmAndDeleteCurrentImage();
   qreal getScaleFactor() const;
-
+  
 private:
   QLabel canvasLabel;
 
@@ -110,4 +110,6 @@ private:
   std::atomic<bool> m_slideshowLoop;
 
   Preferences *m_preferences;
+
+  QString m_path;
 };
